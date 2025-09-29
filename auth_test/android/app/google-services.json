@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "327579952473",
+    "project_id": "sample-push-notif-tjb",
+    "storage_bucket": "sample-push-notif-tjb.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:327579952473:android:3c9deec6888b67927a1848",
+        "android_client_info": {
+          "package_name": "dev.ikhwan.authTest.auth_test"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "327579952473-2ics3a2q3ri30dnirqd7u1na6a0npd3b.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB4sqz07sF0Tna140qqCSN5iDUBVVkhJDg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "327579952473-2ics3a2q3ri30dnirqd7u1na6a0npd3b.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

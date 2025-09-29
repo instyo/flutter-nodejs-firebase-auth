@@ -1,0 +1,4 @@
+auth-test-be
+auth-test-express/node_modules
+auth-test-express/.env
+auth-test-express/serviceAccount.json
