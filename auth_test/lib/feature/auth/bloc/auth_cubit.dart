@@ -57,4 +57,26 @@ class AuthCubit extends Cubit<AuthState> {
       emit(state.copyWith(status: AuthStatus.error));
     }
   }
+
+  Future<void> appleAuth() async {
+    try {
+      emit(state.copyWith(status: AuthStatus.loading));
+      final result = await firebaseService.signInWithApple();
+
+      if (result == null) {
+        emit(state.copyWith(status: AuthStatus.error));
+        return;
+      }
+
+      debugPrint('Apple Auth Result: $result');
+
+      final user = AuthModel.fromJson(result['user']);
+      AuthStorage.saveAuthData(user.toJson());
+
+      emit(state.copyWith(status: AuthStatus.authenticated));
+    } catch (e, s) {
+      debugPrint('Apple Auth Error: $e, $s');
+      emit(state.copyWith(status: AuthStatus.error));
+    }
+  }
 }

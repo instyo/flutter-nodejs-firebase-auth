@@ -1,8 +1,11 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:auth_test/core/constants.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
+import 'package:crypto/crypto.dart';
 import 'package:http/http.dart' as http;
 
 class FirebaseService {
@@ -26,6 +29,75 @@ class FirebaseService {
     );
 
     return json.decode(result.body);
+  }
+
+  // Sign in with Apple
+  Future<Map<String, dynamic>?> signInWithApple() async {
+    try {
+      // Generate a random nonce for security
+      final rawNonce = _generateNonce();
+      final nonce = _sha256ofString(rawNonce);
+
+      // Request Apple ID credential
+      final appleCredential = await SignInWithApple.getAppleIDCredential(
+        scopes: [
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName,
+        ],
+        nonce: nonce,
+      );
+
+      // Create Firebase credential from Apple credential
+      final oauthCredential = OAuthProvider("apple.com").credential(
+        idToken: appleCredential.identityToken,
+        rawNonce: rawNonce,
+        accessToken: appleCredential.authorizationCode,
+      );
+
+      // Sign in to Firebase
+      final userCredential = await _auth.signInWithCredential(oauthCredential);
+      
+      // Get Firebase ID token
+      final idToken = await userCredential.user?.getIdToken();
+      
+      if (idToken == null) {
+        throw Exception('Failed to get Firebase ID token');
+      }
+
+      // Send to backend
+      final result = await http.post(
+        Uri.parse('${Constants.baseUrl}/api/apple-sign-in'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'idToken': idToken,
+          'appleUser': {
+            'email': appleCredential.email ?? userCredential.user?.email,
+            'familyName': appleCredential.familyName,
+            'givenName': appleCredential.givenName,
+            'userIdentifier': appleCredential.userIdentifier,
+          }
+        }),
+      );
+
+      return json.decode(result.body);
+    } catch (e) {
+      print('Apple Sign In error: $e');
+      return null;
+    }
+  }
+
+  // Generate a cryptographically secure random nonce
+  String _generateNonce([int length = 32]) {
+    const charset = '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
+    final random = Random.secure();
+    return List.generate(length, (_) => charset[random.nextInt(charset.length)]).join();
+  }
+
+  // SHA256 hash function for the nonce
+  String _sha256ofString(String input) {
+    final bytes = utf8.encode(input);
+    final digest = sha256.convert(bytes);
+    return digest.toString();
   }
 
   // Get current user

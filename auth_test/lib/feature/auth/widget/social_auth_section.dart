@@ -19,7 +19,9 @@ class SocialAuthSection extends StatelessWidget {
           children: [
             SocialButton(
               imagePath: 'assets/images/apple.png',
-              onPressed: () {},
+              onPressed: () {
+                cubit.appleAuth();
+              },
             ),
             const SizedBox(width: 16),
             SocialButton(
