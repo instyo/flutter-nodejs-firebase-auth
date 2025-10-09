@@ -1,4 +1,4 @@
-const { GoogleAuthProvider } = require('firebase/auth');
+const { GoogleAuthProvider, OAuthProvider } = require('firebase/auth');
 const {
     getAuth,
     createUserWithEmailAndPassword,
@@ -134,6 +134,70 @@ class FirebaseAuthController {
                 const errorMessage = error.message || "An error occurred while logging in";
                 res.status(500).json({ error: errorMessage });
             });
+    }
+
+    async appleLogin(req, res) {
+        try {
+            const { idToken, appleUser } = req.body;
+
+            if (!idToken) {
+                return res.status(422).json({
+                    message: "ID token needed"
+                });
+            }
+
+            // Verify the Firebase ID token using the admin SDK
+            const decodedToken = await admin.auth().verifyIdToken(idToken);
+
+            // Get or create user data
+            let user;
+            try {
+                user = await admin.auth().getUser(decodedToken.uid);
+            } catch (error) {
+                if (error.code === 'auth/user-not-found') {
+                    // User doesn't exist, this shouldn't happen with Apple Sign In flow
+                    return res.status(404).json({ error: "User not found" });
+                }
+                throw error;
+            }
+
+            // Update user profile if Apple provided additional info and it's missing
+            const updates = {};
+            if (appleUser?.givenName && !user.displayName) {
+                updates.displayName = `${appleUser.givenName} ${appleUser.familyName || ''}`.trim();
+            }
+            if (appleUser?.email && !user.email) {
+                updates.email = appleUser.email;
+            }
+
+            if (Object.keys(updates).length > 0) {
+                await admin.auth().updateUser(decodedToken.uid, updates);
+                user = await admin.auth().getUser(decodedToken.uid);
+            }
+
+            // Set authentication cookie
+            res.cookie('access_token', idToken, {
+                httpOnly: true
+            });
+
+            console.log(user)
+
+            res.status(200).json({
+                message: "User logged in successfully with Apple",
+                user: {
+                    uid: user.uid,
+                    email: user.email,
+                    displayName: user.displayName,
+                    emailVerified: user.emailVerified,
+                    provider: 'apple.com'
+                }
+            });
+
+        } catch (error) {
+            console.error('Apple Sign In error:', error);
+            const errorMessage = error.message || "An error occurred during Apple Sign In";
+            res.status(500).json({ error: errorMessage });
+        }
     }
 
     // Exchange a Firebase refresh token for a new ID token (access token).

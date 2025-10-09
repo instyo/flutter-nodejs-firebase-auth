@@ -11,6 +11,7 @@ router.post('/api/login', firebaseAuthController.loginUser)
 router.post('/api/logout', firebaseAuthController.logoutUser)
 router.post('/api/reset-password', firebaseAuthController.resetPassword)
 router.post('/api/google-sign-in', firebaseAuthController.googleLogin)
+router.post('/api/apple-sign-in', firebaseAuthController.appleLogin)
 router.post('/api/refresh', firebaseAuthController.refreshToken)
 router.post('/api/checkEmail', firebaseAuthController.isEmailVerified)
 
