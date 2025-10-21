@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:auth_test/core/constants.dart';
@@ -45,7 +46,17 @@ class FirebaseService {
           AppleIDAuthorizationScopes.fullName,
         ],
         nonce: nonce,
+        webAuthenticationOptions: Platform.isIOS
+            ? null
+            : WebAuthenticationOptions(
+                clientId: 'dev.ikhwan.authTest.authTest.service',
+                redirectUri: Uri.parse(
+                  '${Constants.baseUrl}/api/callbacks/sign_in_with_apple',
+                ),
+              ),
       );
+
+      print(">> HEELLOO : ${appleCredential.authorizationCode}");
 
       // Create Firebase credential from Apple credential
       final oauthCredential = OAuthProvider("apple.com").credential(
@@ -56,10 +67,10 @@ class FirebaseService {
 
       // Sign in to Firebase
       final userCredential = await _auth.signInWithCredential(oauthCredential);
-      
+
       // Get Firebase ID token
       final idToken = await userCredential.user?.getIdToken();
-      
+
       if (idToken == null) {
         throw Exception('Failed to get Firebase ID token');
       }
@@ -75,7 +86,7 @@ class FirebaseService {
             'familyName': appleCredential.familyName,
             'givenName': appleCredential.givenName,
             'userIdentifier': appleCredential.userIdentifier,
-          }
+          },
         }),
       );
 
@@ -88,9 +99,13 @@ class FirebaseService {
 
   // Generate a cryptographically secure random nonce
   String _generateNonce([int length = 32]) {
-    const charset = '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
+    const charset =
+        '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
     final random = Random.secure();
-    return List.generate(length, (_) => charset[random.nextInt(charset.length)]).join();
+    return List.generate(
+      length,
+      (_) => charset[random.nextInt(charset.length)],
+    ).join();
   }
 
   // SHA256 hash function for the nonce
