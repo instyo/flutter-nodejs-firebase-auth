@@ -1,7 +1,17 @@
 const { admin } = require("../config/firebase");
-
 const verifyToken = async (req, res, next) => {
-    const idToken = req.cookies.access_token;
+    // Accept "Bearer <token>" from Authorization header, fallback to cookie
+    let idToken;
+    const authHeader = req.headers.authorization || req.get && req.get('Authorization');
+
+    console.log(authHeader)
+
+    if (authHeader && typeof authHeader === 'string' && authHeader.toLowerCase().startsWith('bearer ')) {
+        idToken = authHeader.split(' ')[1];
+    } else if (req.cookies && req.cookies.access_token) {
+        idToken = req.cookies.access_token;
+    }
+
     if (!idToken) {
         return res.status(403).json({ error: 'No token provided' });
     }

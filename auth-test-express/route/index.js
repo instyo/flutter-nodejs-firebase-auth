@@ -14,6 +14,7 @@ router.post('/api/google-sign-in', firebaseAuthController.googleLogin)
 router.post('/api/apple-sign-in', firebaseAuthController.appleLogin)
 router.post('/api/refresh', firebaseAuthController.refreshToken)
 router.post('/api/checkEmail', firebaseAuthController.isEmailVerified)
+router.post('/api/callbacks/sign_in_with_apple', firebaseAuthController.appleCallback)
 
 //posts routes
 router.get('/api/posts', verifyToken, postController.getPosts);

@@ -248,6 +248,22 @@ class FirebaseAuthController {
             return res.status(500).json({ error: 'Internal server error' });
         }
     }
+
+    async appleCallback(req, res) {
+        const { code, id_token, state } = req.body;
+
+        console.log('>> BODY :', code)
+        console.log('>> RES :', id_token)
+        console.log('>> State :', state)
+
+        const redirect = `intent://callback?${new URLSearchParams(
+            req.body
+        ).toString()}#Intent;package=dev.ikhwan.authTest.auth_test;scheme=signinwithapple;end`;
+
+        console.log(`Redirecting to ${redirect}`);
+
+        res.redirect(307, redirect);
+    }
 }
 
 module.exports = new FirebaseAuthController();
